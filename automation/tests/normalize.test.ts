@@ -5,7 +5,8 @@ import {
   computeStreaks,
 } from "../src/github/normalize.js";
 import { DEFAULT_CONFIG, type Config } from "../src/config.js";
-import type { ContributionDay, RawRepository, RawUserCounts } from "../src/github/types.js";
+import type { ContributionDay, RawRepository } from "../src/github/types.js";
+import type { ScrapedContributions } from "../src/github/contributions.js";
 
 const cfg = (over: Partial<Config["languages"]> = {}): Config => ({
   username: "u",
@@ -90,24 +91,30 @@ describe("aggregateLanguages", () => {
 });
 
 describe("buildActivity", () => {
-  it("drops future-padded days from the current week", () => {
-    const counts = {
-      contributionsCollection: {
-        contributionCalendar: {
-          totalContributions: 3,
-          weeks: [
-            {
-              contributionDays: [
-                { date: "2026-08-13", contributionCount: 3 },
-                { date: "2099-01-01", contributionCount: 0 },
-              ],
-            },
-          ],
-        },
-      },
-    } as unknown as RawUserCounts;
-    const activity = buildActivity(counts, "2026-08-14");
-    expect(activity.weeks[0]).toHaveLength(1);
+  it("drops future-padded days and keeps the fragment total", () => {
+    const contributions: ScrapedContributions = {
+      totalContributions: 3,
+      days: [
+        { date: "2026-08-13", count: 3 },
+        { date: "2099-01-01", count: 0 },
+      ],
+    };
+    const activity = buildActivity(contributions, "2026-08-14");
+    expect(activity.totalContributions).toBe(3);
+    expect(activity.weeks.flat()).toHaveLength(1);
     expect(activity.maxCount).toBe(3);
+  });
+
+  it("splits days into week columns starting on Sunday", () => {
+    // 2026-08-09 is a Sunday; 2026-08-16 the next Sunday -> two columns.
+    const days = Array.from({ length: 9 }, (_, i) => {
+      const d = new Date("2026-08-09T00:00:00Z");
+      d.setUTCDate(d.getUTCDate() + i);
+      return { date: d.toISOString().slice(0, 10), count: 1 };
+    });
+    const activity = buildActivity({ totalContributions: 9, days }, "2026-12-31");
+    expect(activity.weeks).toHaveLength(2);
+    expect(activity.weeks[0]).toHaveLength(7); // Sun..Sat
+    expect(activity.weeks[1]).toHaveLength(2); // Sun, Mon
   });
 });

@@ -15,7 +15,13 @@ import type {
   StatsData,
   Streak,
 } from "./types.js";
+import type { ScrapedContributions } from "./contributions.js";
 import type { RawProfile } from "./client.js";
+
+/** UTC weekday, 0 = Sunday. */
+function weekday(iso: string): number {
+  return new Date(`${iso}T00:00:00Z`).getUTCDay();
+}
 
 const FALLBACK_LANG_COLOR = "#8b949e";
 
@@ -33,6 +39,7 @@ function filterRepos(repos: RawRepository[], config: Config): RawRepository[] {
 export function buildStats(
   counts: RawUserCounts,
   repos: RawRepository[],
+  contributionsLastYear: number,
 ): StatsData {
   const stars = repos.reduce((s, r) => s + r.stargazerCount, 0);
   const forks = repos.reduce((s, r) => s + r.forkCount, 0);
@@ -46,7 +53,8 @@ export function buildStats(
     followers: counts.followers.totalCount,
     pullRequests: counts.pullRequests.totalCount,
     issues: counts.issues.totalCount,
-    contributionsLastYear: cc.contributionCalendar.totalContributions,
+    // From the profile fragment (public + private), so it matches the profile.
+    contributionsLastYear,
     commitsLastYear: cc.totalCommitContributions,
     reviewsLastYear: cc.totalPullRequestReviewContributions,
   };
@@ -131,27 +139,36 @@ export function computeStreaks(days: ContributionDay[]): {
 }
 
 export function buildActivity(
-  counts: RawUserCounts,
+  contributions: ScrapedContributions,
   todayIso: string,
 ): ActivityData {
-  const cal = counts.contributionsCollection.contributionCalendar;
+  // Drop any future-padded days, then order ascending.
+  const days: ContributionDay[] = contributions.days
+    .filter((d) => d.date <= todayIso)
+    .map((d) => ({ date: d.date, count: d.count }))
+    .sort((a, b) => a.date.localeCompare(b.date));
 
-  const weeks: ContributionDay[][] = cal.weeks.map((w) =>
-    w.contributionDays
-      // Drop days in the future (the current week is padded with them).
-      .filter((d) => d.date <= todayIso)
-      .map((d) => ({ date: d.date, count: d.contributionCount })),
-  );
+  // Group into calendar-week columns (a new column begins each Sunday), matching
+  // GitHub's grid. The heatmap positions each day within its column by weekday.
+  const weeks: ContributionDay[][] = [];
+  let week: ContributionDay[] = [];
+  for (const d of days) {
+    if (week.length && weekday(d.date) === 0) {
+      weeks.push(week);
+      week = [];
+    }
+    week.push(d);
+  }
+  if (week.length) weeks.push(week);
 
-  const flat: ContributionDay[] = weeks.flat().sort((a, b) => a.date.localeCompare(b.date));
-  const { current, longest } = computeStreaks(flat);
-  const maxCount = flat.reduce((m, d) => Math.max(m, d.count), 0);
+  const { current, longest } = computeStreaks(days);
+  const maxCount = days.reduce((m, d) => Math.max(m, d.count), 0);
 
   return {
-    totalContributions: cal.totalContributions,
+    totalContributions: contributions.totalContributions,
     currentStreak: current,
     longestStreak: longest,
-    weeks: weeks.filter((w) => w.length > 0),
+    weeks,
     maxCount,
   };
 }
@@ -163,9 +180,9 @@ export function normalizeProfile(raw: RawProfile, config: Config): ProfileData {
   const repos = filterRepos(raw.repositories, config);
 
   return {
-    stats: buildStats(raw.counts, repos),
+    stats: buildStats(raw.counts, repos, raw.contributions.totalContributions),
     languages: aggregateLanguages(repos, config),
-    activity: buildActivity(raw.counts, todayIso),
+    activity: buildActivity(raw.contributions, todayIso),
     generatedAt,
   };
 }

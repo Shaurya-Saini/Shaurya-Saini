@@ -1,7 +1,8 @@
 /** Deterministic mock GitHub data for offline preview + tests. */
 
 import type { RawProfile } from "../src/github/client.js";
-import type { RawContributionDay, RawRepository } from "../src/github/types.js";
+import type { ScrapedDay } from "../src/github/contributions.js";
+import type { RawRepository } from "../src/github/types.js";
 
 // Tiny seeded PRNG so previews look the same every run.
 function mulberry32(seed: number) {
@@ -14,45 +15,32 @@ function mulberry32(seed: number) {
   };
 }
 
-function buildCalendarWeeks(rand: () => number): {
-  contributionDays: RawContributionDay[];
-}[] {
+/** A trailing-year list of daily contribution counts, starting on a Sunday. */
+function buildDays(rand: () => number): ScrapedDay[] {
   const today = new Date();
   const start = new Date(today);
   start.setUTCDate(start.getUTCDate() - 364);
-  // Back up to the previous Sunday.
-  start.setUTCDate(start.getUTCDate() - start.getUTCDay());
+  start.setUTCDate(start.getUTCDate() - start.getUTCDay()); // back to Sunday
 
-  const weeks: { contributionDays: RawContributionDay[] }[] = [];
+  const days: ScrapedDay[] = [];
   const cursor = new Date(start);
-  let week: RawContributionDay[] = [];
-
   while (cursor <= today) {
-    const iso = cursor.toISOString().slice(0, 10);
-    // Weekends quieter; occasional zero days to create realistic streaks.
     const weekend = cursor.getUTCDay() === 0 || cursor.getUTCDay() === 6;
     const roll = rand();
     let count = 0;
     if (roll > (weekend ? 0.55 : 0.25)) {
       count = Math.floor(rand() * (weekend ? 6 : 12)) + 1;
     }
-    week.push({ date: iso, contributionCount: count });
-    if (cursor.getUTCDay() === 6) {
-      weeks.push({ contributionDays: week });
-      week = [];
-    }
+    days.push({ date: cursor.toISOString().slice(0, 10), count });
     cursor.setUTCDate(cursor.getUTCDate() + 1);
   }
-  if (week.length) weeks.push({ contributionDays: week });
-  return weeks;
+  return days;
 }
 
 export function mockRawProfile(username = "Shaurya-Saini"): RawProfile {
   const rand = mulberry32(42);
-  const weeks = buildCalendarWeeks(rand);
-  const total = weeks
-    .flatMap((w) => w.contributionDays)
-    .reduce((s, d) => s + d.contributionCount, 0);
+  const days = buildDays(rand);
+  const total = days.reduce((s, d) => s + d.count, 0);
 
   const repositories: RawRepository[] = [
     {
@@ -119,13 +107,10 @@ export function mockRawProfile(username = "Shaurya-Saini"): RawProfile {
       issues: { totalCount: 41 },
       contributionsCollection: {
         totalCommitContributions: Math.round(total * 0.72),
-        totalPullRequestContributions: 73,
         totalPullRequestReviewContributions: 18,
-        totalIssueContributions: 41,
-        restrictedContributionsCount: 0,
-        contributionCalendar: { totalContributions: total, weeks },
       },
     },
     repositories,
+    contributions: { totalContributions: total, days },
   };
 }

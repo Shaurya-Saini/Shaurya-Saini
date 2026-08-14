@@ -14,27 +14,17 @@ export interface RawRepository {
   languages: { edges: RawLanguageEdge[] };
 }
 
-export interface RawContributionDay {
-  date: string; // YYYY-MM-DD
-  contributionCount: number;
-}
-
 export interface RawUserCounts {
   name: string | null;
   login: string;
   followers: { totalCount: number };
   pullRequests: { totalCount: number };
   issues: { totalCount: number };
+  // Only the trailing-year commit + review counts, used for the rank grade.
+  // The contribution calendar/total is NOT sourced here — see github/contributions.ts.
   contributionsCollection: {
     totalCommitContributions: number;
-    totalPullRequestContributions: number;
     totalPullRequestReviewContributions: number;
-    totalIssueContributions: number;
-    restrictedContributionsCount: number;
-    contributionCalendar: {
-      totalContributions: number;
-      weeks: { contributionDays: RawContributionDay[] }[];
-    };
   };
 }
 

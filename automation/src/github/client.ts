@@ -9,6 +9,7 @@
  *    which is what lets us preserve the previous SVGs on failure.
  */
 
+import { fetchContributions, type ScrapedContributions } from "./contributions.js";
 import { REPOSITORIES_QUERY, USER_COUNTS_QUERY } from "./queries.js";
 import type { RawRepository, RawUserCounts } from "./types.js";
 
@@ -112,6 +113,8 @@ async function graphql<T>(
 export interface RawProfile {
   counts: RawUserCounts;
   repositories: RawRepository[];
+  /** Contribution total + per-day calendar, scraped from the profile fragment. */
+  contributions: ScrapedContributions;
 }
 
 /** Fetch everything needed for all three cards. Throws on unrecoverable failure. */
@@ -119,13 +122,16 @@ export async function fetchRawProfile(
   username: string,
   opts: ClientOptions,
 ): Promise<RawProfile> {
-  // No date range: the default contributionsCollection window is the trailing
-  // 365 days, matching the profile graph. See the note in queries.ts.
-  const countsData = await graphql<{ user: RawUserCounts | null }>(
-    USER_COUNTS_QUERY,
-    { login: username },
-    opts,
-  );
+  // Counts (GraphQL) and the contribution calendar (profile fragment) are
+  // independent sources — fetch them together.
+  const [countsData, contributions] = await Promise.all([
+    graphql<{ user: RawUserCounts | null }>(USER_COUNTS_QUERY, { login: username }, opts),
+    fetchContributions(username, {
+      fetchImpl: opts.fetchImpl,
+      retries: opts.retries,
+      backoffMs: opts.backoffMs,
+    }),
+  ]);
   if (!countsData.user) {
     throw new Error(`GitHub user "${username}" not found.`);
   }
@@ -146,7 +152,7 @@ export async function fetchRawProfile(
     cursor = conn.pageInfo.endCursor;
   }
 
-  return { counts: countsData.user, repositories };
+  return { counts: countsData.user, repositories, contributions };
 }
 
 interface RepoConnection {
