@@ -17,9 +17,9 @@
 <br>
 
 <div align="center">
-  <img src="https://github-profile-stats.<your-subdomain>.workers.dev/stats.svg" height="165" alt="GitHub stats" />
-  <img src="https://github-profile-stats.<your-subdomain>.workers.dev/languages.svg" height="165" alt="Top languages" />
-  <img src="https://github-profile-stats.<your-subdomain>.workers.dev/activity.svg" height="165" alt="Contribution activity" />
+  <img src="https://github-profile-stats.shauryathemaster01.workers.dev/stats.svg" height="165" alt="GitHub stats" />
+  <img src="https://github-profile-stats.shauryathemaster01.workers.dev/languages.svg" height="165" alt="Top languages" />
+  <img src="https://github-profile-stats.shauryathemaster01.workers.dev/activity.svg" height="165" alt="Contribution activity" />
 </div>
 
 ---
