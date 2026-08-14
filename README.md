@@ -21,7 +21,9 @@
   <br>
   <br>
   <img src="https://github-profile-stats.shauryathemaster01.workers.dev/languages.svg" height="225" alt="Top languages" />
-  <!-- <img src="https://github-profile-stats.shauryathemaster01.workers.dev/activity.svg" height="165" alt="Contribution activity" /> -->
+  <br>
+  <br>
+  <img src="https://github-profile-stats.shauryathemaster01.workers.dev/activity.svg" height="225" alt="Contribution activity" />
 </div>
 
 ---
