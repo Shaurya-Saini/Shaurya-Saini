@@ -119,12 +119,11 @@ export async function fetchRawProfile(
   username: string,
   opts: ClientOptions,
 ): Promise<RawProfile> {
-  const to = new Date();
-  const from = new Date(to.getTime() - 365 * 24 * 60 * 60 * 1000);
-
+  // No date range: the default contributionsCollection window is the trailing
+  // 365 days, matching the profile graph. See the note in queries.ts.
   const countsData = await graphql<{ user: RawUserCounts | null }>(
     USER_COUNTS_QUERY,
-    { login: username, from: from.toISOString(), to: to.toISOString() },
+    { login: username },
     opts,
   );
   if (!countsData.user) {

@@ -1,19 +1,25 @@
 /** GraphQL documents. Kept separate from the client so they are easy to review. */
 
 /**
- * User-level counts + the contribution calendar (last 365 days). One request.
+ * User-level counts + the contribution calendar. One request.
  * `pullRequests`/`issues` totalCount are all-time authored totals; the
- * contribution numbers are for the trailing year window.
+ * contribution numbers are for the trailing year.
+ *
+ * NOTE: `contributionsCollection` is intentionally called with NO from/to.
+ * The default window is the trailing 365 days — exactly what the GitHub profile
+ * graph shows. Passing an explicit range that crosses a calendar-year boundary
+ * makes GitHub truncate the calendar to a single year (e.g. only 2026), which
+ * silently undercounts. Omitting the range avoids that entirely.
  */
 export const USER_COUNTS_QUERY = /* GraphQL */ `
-  query UserCounts($login: String!, $from: DateTime!, $to: DateTime!) {
+  query UserCounts($login: String!) {
     user(login: $login) {
       name
       login
       followers { totalCount }
       pullRequests { totalCount }
       issues { totalCount }
-      contributionsCollection(from: $from, to: $to) {
+      contributionsCollection {
         totalCommitContributions
         totalPullRequestContributions
         totalPullRequestReviewContributions
