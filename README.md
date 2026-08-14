@@ -17,21 +17,9 @@
 <br>
 
 <div align="center">
-  <!-- Main Stats Card -->
-  <img 
-    src="https://github-readme-stats.vercel.app/api?username=Shaurya-Saini&show_icons=true&theme=gruvbox&hide_border=false" 
-    height="165"
-  />
-  <!-- Top Languages Card -->
-  <img 
-    src="https://github-readme-stats.vercel.app/api/top-langs/?username=Shaurya-saini&layout=compact&theme=gruvbox&hide_border=false" 
-    height="165"
-  />
-  <!-- Streak Card -->
-  <img 
-    src="https://github-readme-streak-stats.herokuapp.com/?user=Shaurya-Saini&theme=gruvbox&hide_border=false" 
-    height="165"
-  />
+  <img src="https://github-profile-stats.<your-subdomain>.workers.dev/stats.svg" height="165" alt="GitHub stats" />
+  <img src="https://github-profile-stats.<your-subdomain>.workers.dev/languages.svg" height="165" alt="Top languages" />
+  <img src="https://github-profile-stats.<your-subdomain>.workers.dev/activity.svg" height="165" alt="Contribution activity" />
 </div>
 
 ---

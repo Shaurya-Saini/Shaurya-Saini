@@ -1,0 +1,26 @@
+# Cloudflare Worker configuration.
+# Setup steps live in README.md.
+
+name = "github-profile-stats"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+
+# The scheduled ("cron") trigger. This runs ON CLOUDFLARE, not on GitHub, so it
+# NEVER creates commits on your account. Default: every 12 hours (00:00 and 12:00 UTC).
+[triggers]
+crons = ["0 */12 * * *"]
+
+# Non-secret configuration. Your GitHub username is safe to keep here.
+[vars]
+GITHUB_USERNAME = "Shaurya-Saini"
+
+# Key-Value storage that holds the three generated SVGs between cron runs.
+# Create it with `wrangler kv namespace create STATS_KV` and paste the real "id" below.
+[[kv_namespaces]]
+binding = "STATS_KV"
+id = "7eeca226d4b2432a95522b8f27c2e0f9"
+
+# Secrets are NOT stored in this file. You set them once with:
+#   npx wrangler secret put GITHUB_TOKEN
+#   npx wrangler secret put REFRESH_SECRET
+# Never paste tokens into this file.

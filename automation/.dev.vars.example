@@ -1,0 +1,9 @@
+# Copy this file to ".dev.vars" for LOCAL development (wrangler dev / npm run preview).
+# ".dev.vars" is git-ignored and must NEVER be committed.
+#
+# Create a GitHub token (classic, scope: read:user), then paste it here.
+
+GITHUB_TOKEN="ghp_your_personal_access_token_here"
+
+# Optional: a random string that protects the manual /refresh endpoint.
+REFRESH_SECRET="pick-any-long-random-string"
