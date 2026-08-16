@@ -15,15 +15,11 @@
 
 ---
 <br>
-
+<!-- <!--  -->
 <div align="center">
-  <img src="https://github-profile-stats.shauryathemaster01.workers.dev/stats.svg" height="225" alt="GitHub stats" />
-  <br>
-  <br>
-  <img src="https://github-profile-stats.shauryathemaster01.workers.dev/languages.svg" height="225" alt="Top languages" />
-  <br>
-  <br>
-  <img src="https://github-profile-stats.shauryathemaster01.workers.dev/activity.svg" height="225" alt="Contribution activity" />
+  <img src="https://github-profile-stats.shauryathemaster01.workers.dev/stats.svg" height="165" alt="GitHub stats" />
+  <img src="https://github-profile-stats.shauryathemaster01.workers.dev/languages.svg" height="165" alt="Top languages" />
+  <img src="https://github-profile-stats.shauryathemaster01.workers.dev/activity.svg" height="200" alt="Contribution activity" />
 </div>
 
 ---
