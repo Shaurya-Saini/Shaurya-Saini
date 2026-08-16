@@ -25,13 +25,28 @@ function weekday(iso: string): number {
 
 const FALLBACK_LANG_COLOR = "#8b949e";
 
-/** Apply the include/exclude repo rules from config, once. */
+/** Repos kept for the languages card (its own include/exclude rules). */
 function filterRepos(repos: RawRepository[], config: Config): RawRepository[] {
   const excluded = new Set(config.excludeRepos.map((r) => r.toLowerCase()));
   return repos.filter((r) => {
     if (excluded.has(r.name.toLowerCase())) return false;
     if (!config.languages.includeForks && r.isFork) return false;
     if (!config.languages.includeArchived && r.isArchived) return false;
+    return true;
+  });
+}
+
+/**
+ * Repos counted on the stats card. Independent of the languages filter so the
+ * "Repositories" total reflects everything you own (archived included, private
+ * when the token can see them) minus forks/exclusions per config.
+ */
+export function statsRepos(repos: RawRepository[], config: Config): RawRepository[] {
+  const excluded = new Set(config.excludeRepos.map((r) => r.toLowerCase()));
+  return repos.filter((r) => {
+    if (excluded.has(r.name.toLowerCase())) return false;
+    if (!config.stats.countForks && r.isFork) return false;
+    if (!config.stats.countArchived && r.isArchived) return false;
     return true;
   });
 }
@@ -177,11 +192,12 @@ export function buildActivity(
 export function normalizeProfile(raw: RawProfile, config: Config): ProfileData {
   const generatedAt = new Date().toISOString();
   const todayIso = generatedAt.slice(0, 10);
-  const repos = filterRepos(raw.repositories, config);
+  const langRepos = filterRepos(raw.repositories, config);
+  const countRepos = statsRepos(raw.repositories, config);
 
   return {
-    stats: buildStats(raw.counts, repos, raw.contributions.totalContributions),
-    languages: aggregateLanguages(repos, config),
+    stats: buildStats(raw.counts, countRepos, raw.contributions.totalContributions),
+    languages: aggregateLanguages(langRepos, config),
     activity: buildActivity(raw.contributions, todayIso),
     generatedAt,
   };

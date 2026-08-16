@@ -22,11 +22,22 @@ export interface CacheConfig {
   staleWhileRevalidate: number;
 }
 
+export interface StatsConfig {
+  /**
+   * Count archived repositories toward the "Repositories" total (and their
+   * stars/forks). GitHub's own profile counts them; they are still your work.
+   */
+  countArchived: boolean;
+  /** Count forks toward the "Repositories" total. Off = only original repos. */
+  countForks: boolean;
+}
+
 export interface Config {
   username: string;
   /** Repositories (by name) to exclude from every card. */
   excludeRepos: string[];
   languages: LanguageConfig;
+  stats: StatsConfig;
   cache: CacheConfig;
 }
 
@@ -37,6 +48,12 @@ export const DEFAULT_CONFIG: Omit<Config, "username"> = {
     includeArchived: false,
     maxLanguages: 6,
     hide: [],
+  },
+  stats: {
+    // Archived repos ARE yours — count them. Private repos are included
+    // automatically when GITHUB_TOKEN has private-repo read scope.
+    countArchived: true,
+    countForks: false,
   },
   cache: {
     // 30 min browser cache; the underlying data only changes every 12h, but a

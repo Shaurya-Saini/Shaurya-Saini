@@ -2,8 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   aggregateLanguages,
   buildActivity,
+  buildStats,
   computeStreaks,
+  statsRepos,
 } from "../src/github/normalize.js";
+import type { RawUserCounts } from "../src/github/types.js";
 import { DEFAULT_CONFIG, type Config } from "../src/config.js";
 import type { ContributionDay, RawRepository } from "../src/github/types.js";
 import type { ScrapedContributions } from "../src/github/contributions.js";
@@ -12,6 +15,7 @@ const cfg = (over: Partial<Config["languages"]> = {}): Config => ({
   username: "u",
   excludeRepos: [],
   cache: DEFAULT_CONFIG.cache,
+  stats: DEFAULT_CONFIG.stats,
   languages: { ...DEFAULT_CONFIG.languages, ...over },
 });
 
@@ -87,6 +91,55 @@ describe("aggregateLanguages", () => {
   it("honours the hide list", () => {
     const out = aggregateLanguages(repos, cfg({ hide: ["shell"] }));
     expect(out.languages.map((l) => l.name)).not.toContain("Shell");
+  });
+});
+
+describe("statsRepos + buildStats repository total", () => {
+  const repo = (over: Partial<RawRepository>): RawRepository => ({
+    name: "r",
+    isFork: false,
+    isArchived: false,
+    stargazerCount: 0,
+    forkCount: 0,
+    languages: { edges: [] },
+    ...over,
+  });
+
+  const counts: RawUserCounts = {
+    name: "U",
+    login: "u",
+    followers: { totalCount: 0 },
+    pullRequests: { totalCount: 0 },
+    issues: { totalCount: 0 },
+    contributionsCollection: {
+      totalCommitContributions: 0,
+      totalPullRequestReviewContributions: 0,
+    },
+  };
+
+  const repos = [
+    repo({ name: "public", stargazerCount: 3 }),
+    repo({ name: "archived", isArchived: true, stargazerCount: 2 }),
+    repo({ name: "aFork", isFork: true, stargazerCount: 5 }),
+  ];
+
+  it("counts archived repos but not forks by default, and sums their stars", () => {
+    const kept = statsRepos(repos, cfg());
+    expect(kept.map((r) => r.name)).toEqual(["public", "archived"]);
+
+    const stats = buildStats(counts, kept, 0);
+    expect(stats.repositories).toBe(2); // archived included, fork excluded
+    expect(stats.stars).toBe(5); // 3 + 2, archived stars now counted
+  });
+
+  it("honours excludeRepos and the countArchived/countForks toggles", () => {
+    const cfgToggled: Config = {
+      ...cfg(),
+      excludeRepos: ["public"],
+      stats: { countArchived: false, countForks: true },
+    };
+    const kept = statsRepos(repos, cfgToggled);
+    expect(kept.map((r) => r.name)).toEqual(["aFork"]);
   });
 });
 

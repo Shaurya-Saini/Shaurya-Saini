@@ -1,21 +1,25 @@
 /**
- * GitHub rank ("S", "A+", ... "C") + percentile. This is a faithful port of the
- * algorithm github-readme-stats uses, so the grade on our card matches what
- * people are used to seeing. Lower percentile = better rank.
- *
- * Source of the model: exponential/log-normal CDFs over weighted contribution
- * signals, normalised to a 0..100 percentile.
+ * GitHub rank ("S", "A+", ... "C") + percentile. The scoring math (weighted
+ * exponential/log-normal CDFs -> 0..100 percentile) is the github-readme-stats
+ * model, but the MEDIAN benchmarks below are DELIBERATELY recalibrated from the
+ * upstream defaults (commits 1000 / prs 50 / issues 25 / stars 50 / followers 10),
+ * which benchmark against prolific OSS maintainers. Those defaults grade an active
+ * early-career account at ~C+, which is not a useful signal. The values here
+ * benchmark against a realistic early-career/student cohort instead, so the grade
+ * reflects standing among peers and rises naturally with activity. Lower
+ * percentile = better rank.
  */
 
 import type { StatsData } from "../github/types.js";
 
+// Recalibrated cohort medians (see header). Upstream defaults in parentheses.
 const MEDIAN = {
-  commits: 1000,
-  prs: 50,
-  issues: 25,
-  reviews: 2,
-  stars: 50,
-  followers: 10,
+  commits: 200, // (1000)
+  prs: 15, // (50)
+  issues: 10, // (25)
+  reviews: 2, // (2)
+  stars: 10, // (50)
+  followers: 5, // (10)
 };
 
 const WEIGHT = {
