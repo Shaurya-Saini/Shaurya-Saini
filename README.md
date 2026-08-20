@@ -19,15 +19,15 @@
 <h1 align="center"><em>“To know the world<br>is to love the world”</em> <br><br></h1>
 <br>
 
-<!-- <!--  -->
-<div align="center">
+<!-- 
+<!-- <div align="center">
   <img src="https://github-profile-stats.shauryathemaster01.workers.dev/stats.svg" height="165" alt="GitHub stats" />
   <img src="https://github-profile-stats.shauryathemaster01.workers.dev/languages.svg" height="165" alt="Top languages" />
   <img src="https://github-profile-stats.shauryathemaster01.workers.dev/activity.svg" height="200" alt="Contribution activity" />
-</div>
+</div> -->
 
 
----
+<!-- --- -->
 
 <h2 align="center">TECH STACK</h2>
 
